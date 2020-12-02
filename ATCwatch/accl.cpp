@@ -14,16 +14,23 @@
 #include "ble.h"
 #include "sleep.h"
 
-#include "SparkFunLIS3DH.h"
-
 struct accl_data_struct accl_data;
 
 #if 1
 
-LIS3DHCore myIMU( I2C_MODE, 0x18 );
+#include "lis3dh-motion-detection.h"
+#include "Wire.h"
+
+uint16_t sampleRate = 1;  // HZ - Samples per second - 1, 10, 25, 50, 100, 200, 400, 1600, 5000
+uint8_t accelRange = 2;   // Accelerometer range = 2, 4, 8, 16g
+
+LIS3DH myIMU(0x18); //Default address is 0x19.
+// LIS3DHCore myIMU( I2C_MODE, 0x18 );
+
 uint16_t errorsAndWarnings = 0;
 
 void init_accl() {
+  #if 0
   myIMU.beginCore();
 
   uint8_t dataToWrite = 0;  //Temporary variable
@@ -65,6 +72,7 @@ void init_accl() {
   // Serial.print("\nReading LIS3DH_WHO_AM_I: 0x");
   // myIMU.readRegister(&readData, LIS3DH_WHO_AM_I);
   // myIMU.readRegister(&readData, 0x11);
+  #endif
 }
 
 void accl_config_read_write(bool rw, uint8_t addr, uint8_t *data, uint32_t len, uint32_t offset)
@@ -119,6 +127,7 @@ accl_data_struct get_accl_data() {
 
 void update_accl_data() {
 
+#if 0
   int16_t temp = 0;
   uint8_t temp2 = 0;
   
@@ -227,7 +236,7 @@ void update_accl_data() {
   // Serial.println();
   // Serial.print("Total reported Errors and Warnings: ");
   // Serial.println(errorsAndWarnings);
-
+#endif
 }
 
 void accl_write_reg(uint8_t reg, uint8_t data) {
