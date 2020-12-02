@@ -23,7 +23,7 @@ class SettingsTimeScreen : public Screen
   public:
     virtual void pre()
     {
-      set_swipe_enabled(true);
+      // set_swipe_enabled(true);
 
       label_screen = lv_label_create(lv_scr_act(), NULL);
       lv_label_set_text(label_screen, "Set Time");

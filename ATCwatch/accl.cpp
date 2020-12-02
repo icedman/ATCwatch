@@ -14,8 +14,231 @@
 #include "ble.h"
 #include "sleep.h"
 
+#include "SparkFunLIS3DH.h"
+
 struct accl_data_struct accl_data;
 
+#if 1
+
+LIS3DHCore myIMU( I2C_MODE, 0x18 );
+uint16_t errorsAndWarnings = 0;
+
+void init_accl() {
+  myIMU.beginCore();
+
+  uint8_t dataToWrite = 0;  //Temporary variable
+
+
+  //Setup the accelerometer******************************
+  dataToWrite = 0; //Start Fresh!
+  dataToWrite |= 0x4 << 4; //ODR of 50Hz
+  dataToWrite |= 0x7; //Enable all axes
+
+  //Now, write the patched together data
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_CTRL_REG1, dataToWrite);
+
+  dataToWrite = 0x80;
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_CTRL_REG4, dataToWrite);
+
+  // dataToWrite = 0x80; //ADC enable
+  // errorsAndWarnings += myIMU.writeRegister(LIS3DH_TEMP_CFG_REG, dataToWrite);
+
+  
+  //Test interrupt configuration profile on int2
+  {
+  dataToWrite = 0x40; //INT2 src
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_CTRL_REG6, dataToWrite);
+  dataToWrite = 0x08; //latch output int
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_CTRL_REG5, dataToWrite);
+  dataToWrite = 0x40; //
+  //errorsAndWarnings += myIMU.writeRegister(LIS3DH_REFERENCE, dataToWrite);
+  dataToWrite = 0x0A; //High X and high Y only
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_INT1_CFG, dataToWrite);
+  dataToWrite = 0x3F; // half amplitude?
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_INT1_THS, dataToWrite);
+  dataToWrite = 0x01; //duration?
+  errorsAndWarnings += myIMU.writeRegister(LIS3DH_INT1_DURATION, dataToWrite);
+  }
+
+  //Get the ID:
+  // uint8_t readData = 0;
+  // Serial.print("\nReading LIS3DH_WHO_AM_I: 0x");
+  // myIMU.readRegister(&readData, LIS3DH_WHO_AM_I);
+  // myIMU.readRegister(&readData, 0x11);
+}
+
+void accl_config_read_write(bool rw, uint8_t addr, uint8_t *data, uint32_t len, uint32_t offset)
+{
+}
+
+void reset_accl() {
+}
+
+void reset_step_counter() {
+}
+
+uint32_t read_step_data() {
+  return 0;
+}
+
+int last_y_acc = 0;
+bool acc_input() {
+  update_accl_data();
+  if ((accl_data.x + 335) <= 670 && accl_data.z < 0) {
+    if (!get_sleep()) {
+      if (accl_data.y <= 0) {
+        return false;
+      } else {
+        last_y_acc = 0;
+        return false;
+      }
+    }
+    if (accl_data.y >= 0) {
+      last_y_acc = 0;
+      return false;
+    }
+    if (accl_data.y + 230 < last_y_acc) {
+      last_y_acc = accl_data.y;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool get_is_looked_at() {
+  update_accl_data();
+  if ((accl_data.y + 300) <= 600 && (accl_data.x + 300) <= 600 && accl_data.z < 100)
+    return true;
+  return false;
+}
+
+accl_data_struct get_accl_data() {
+  update_accl_data();
+  return accl_data;
+}
+
+void update_accl_data() {
+
+  int16_t temp = 0;
+  uint8_t temp2 = 0;
+  
+  uint8_t readData = 0;
+  // Serial.print("\nReading LIS3DH_WHO_AM_I: 0x");
+  // myIMU.readRegister(&readData, LIS3DH_WHO_AM_I);
+  // myIMU.readRegister(&readData, 0x11);
+  // Serial.println(readData, HEX);
+  
+  // Serial.print("\nReading LIS3DH_STATUS_REG_AUX: 0x");
+  // myIMU.readRegister(&readData, LIS3DH_STATUS_REG_AUX);
+  // Serial.println(readData, HEX);
+
+  // Serial.print("\nReading LIS3DH_INT1_SOURCE: 0x");
+  // myIMU.readRegister(&readData, LIS3DH_INT1_SOURCE);
+  // Serial.println(readData, HEX);
+
+  //Clear interrupts
+  // errorsAndWarnings += myIMU.writeRegister(LIS3DH_INT1_SOURCE, 0x00);
+
+  //Dump regs:
+  /*
+  for( int i = LIS3DH_STATUS_REG_AUX; i <= LIS3DH_INT1_DURATION; i++)
+  {
+    // Serial.print("0x");
+    // Serial.print(i,HEX);
+    // Serial.print(": 0x");
+    myIMU.readRegister(&readData, i);
+    // Serial.println(readData, HEX);
+  }
+  */
+
+  //Read a register into the temp variable.
+  if( myIMU.readRegister(&temp2, LIS3DH_OUT_Z_H) != 0 )
+  {
+   errorsAndWarnings++;
+  }
+  //  Serial.println(temp2);
+
+  //Get all parameters
+  // Serial.print("\nAccelerometer Counts:\n");
+
+  // Serial.print(" X = ");
+  //Read a register into the temp variable.
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_X_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+
+  accl_data.y = (temp / 0x10);
+
+  // Serial.println(temp);
+  
+  // Serial.print(" Y = ");  
+  //Read a register into the temp variable.
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_Y_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+
+  accl_data.x = (temp / 0x10);
+
+  // Serial.println(temp);
+
+  // Serial.print(" Z = ");
+  //Read a register into the temp variable.
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_Z_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+
+  accl_data.z = (temp / 0x10);
+  
+  // Serial.println(temp);
+
+
+  // Serial.print("\nADC Counts:\n");
+
+  // Serial.print(" ADC1 = ");
+  //Read a register into the temp variable.
+  /*
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_ADC1_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+  // Serial.println(temp);
+  
+  // Serial.print(" ADC2 = ");  
+  //Read a register into the temp variable.
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_ADC2_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+  // Serial.println(temp);
+
+  // Serial.print(" ADC3 = ");
+  //Read a register into the temp variable.
+  if( myIMU.readRegisterInt16(&temp, LIS3DH_OUT_ADC3_L) != 0 )
+  {
+    errorsAndWarnings++;
+  }
+  */
+  // Serial.println(temp);
+  
+  
+  // Serial.println();
+  // Serial.print("Total reported Errors and Warnings: ");
+  // Serial.println(errorsAndWarnings);
+
+}
+
+void accl_write_reg(uint8_t reg, uint8_t data) {
+}
+
+uint8_t accl_read_reg(uint8_t reg) {
+  return 0;
+}
+
+
+#else
 void init_accl() {
   pinMode(BMA421_INT, INPUT);
   reset_accl();
@@ -124,3 +347,4 @@ uint8_t accl_read_reg(uint8_t reg) {
   user_i2c_read(0x18, reg, &data, 1);
   return data;
 }
+#endif

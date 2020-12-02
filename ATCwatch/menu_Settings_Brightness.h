@@ -23,7 +23,7 @@ class SettingsBrightnessScreen : public Screen
   public:
     virtual void pre()
     {
-      set_swipe_enabled(true);
+      // set_swipe_enabled(true);
 
       backlight_brightness = get_backlight();
 

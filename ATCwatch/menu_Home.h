@@ -65,14 +65,14 @@ class HomeScreen : public Screen
 
       img_heart = lv_img_create(lv_scr_act(), NULL);
       lv_img_set_src(img_heart, &IsymbolHeartSmall);
-      lv_obj_align(img_heart, NULL, LV_ALIGN_IN_BOTTOM_LEFT,  0, -34);
+      lv_obj_align(img_heart, NULL, LV_ALIGN_IN_BOTTOM_LEFT,  0, 0);
 
       label_heart = lv_label_create(lv_scr_act(), NULL);
       lv_obj_set_width(label_heart, 240);
       lv_label_set_text_fmt(label_heart, "%i", get_last_heartrate());
       lv_obj_align(label_heart, img_heart, LV_ALIGN_OUT_RIGHT_MID, 2, 0);
 
-
+      /*
       img_steps = lv_img_create(lv_scr_act(), NULL);
       lv_img_set_src(img_steps, &IsymbolStepsSmall);
       lv_obj_align(img_steps, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 120, -34);
@@ -98,6 +98,7 @@ class HomeScreen : public Screen
       lv_label_set_text(label_msg, " ");
       lv_label_set_text(label_msg, string2char(get_push_msg(30)));
       lv_obj_align(label_msg, img_msg, LV_ALIGN_OUT_RIGHT_MID, 2, 0);
+      */
     }
 
     virtual void main()
@@ -111,7 +112,7 @@ class HomeScreen : public Screen
       lv_label_set_text_fmt(label_battery, "%i%%", get_battery_percent());
 
       lv_label_set_text_fmt(label_heart, "%i", get_last_heartrate());
-      lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
+      // lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
 
       if (get_vars_ble_connected())
         style_ble.text.color = LV_COLOR_MAKE(0x27, 0xA6, 0xFF);

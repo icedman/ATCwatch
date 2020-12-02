@@ -36,6 +36,10 @@
 #include "menu_Http.h"
 #include "menu_Log.h"
 #include "menu_Settings.h"
+#include "menu_Settings_Brightness.h"
+#include "menu_Settings_Color.h"
+#include "menu_Settings_Date.h"
+#include "menu_Settings_Time.h"
 #include <lvgl.h>
 
 long last_main_run;
@@ -56,6 +60,10 @@ app_struct rebootApp = {"Reboot", &IsymbolReboot, &rebootScreen};
 app_struct updateApp = {"Bootloader", &IsymbolBootloader, &updateScreen};
 app_struct offApp = {"Shutdown", &IsymbolShutdown, &offScreen};
 app_struct settingsApp = {"Settings", &IsymbolSettings, &settingsScreen};
+app_struct settingsApp1 = {"Date", &IsymbolSettings, &settingsDateScreen};
+app_struct settingsApp2 = {"Time", &IsymbolSettings, &settingsTimeScreen};
+app_struct settingsApp3 = {"Colors", &IsymbolSettings, &settingsColorScreen};
+app_struct settingsApp4 = {"Brightness", &IsymbolSettings, &settingsBrightnessScreen};
 
 app_struct animationApp = {"Animation", &IsymbolAnimation, &animationScreen};
 app_struct infosApp = {"Infos", &IsymbolInfos, &infosScreen};
@@ -72,8 +80,9 @@ AppScreen apps1Screen(1, maxApps, &notifyApp, &heartApp, &debugApp, &animationAp
 AppScreen apps2Screen(2, maxApps, &rebootApp, &updateApp, &offApp, &settingsApp);
 AppScreen apps3Screen(3, maxApps, &infosApp, &acclApp, &demoApp, &batteryApp);
 AppScreen apps4Screen(4, maxApps, &flashApp, &touchApp, &httpApp, &logApp);
+// AppScreen apps5Screen(5, maxApps, &settingsApp1, &settingsApp2, &settingsApp3, &settingsApp4);
 
-Screen_def *menus[5] = {&homeScreen, &apps1Screen, &apps2Screen, &apps3Screen, &apps4Screen};
+Screen_def *menus[6] = {&homeScreen, &apps1Screen, &apps2Screen, &apps3Screen, &apps4Screen }; // , &apps5Screen};
 
 void init_menu() {
 

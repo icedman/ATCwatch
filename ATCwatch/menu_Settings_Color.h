@@ -23,7 +23,8 @@ class SettingsColorScreen : public Screen
   public:
     virtual void pre()
     {
-      set_swipe_enabled(true);
+      // set_swipe_enabled(true);
+      
       main_color_save = get_main_color();
       grad_color_save = get_grad_color();
       font_color_save = get_font_color();

@@ -84,7 +84,7 @@ void loop() {
       }
     } else stepsWhereReseted = false;
 
-    check_timed_heartrate(time_data.min);//Meassure HR every 15minutes
+    // check_timed_heartrate(time_data.min);//Meassure HR every 15minutes
   }
   gets_interrupt_flag();//check interrupt flags and do something with it
 }

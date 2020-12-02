@@ -61,6 +61,7 @@ void sleep_down() {
   if (!sleep_sleeping) {
     sleep_sleeping = true;
     disable_hardware();
+    // sleep_touch(false);
     set_was_touched(false);
   }
 }

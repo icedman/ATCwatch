@@ -207,6 +207,7 @@ int Wire_read(void)
   return rxBuffer.read_char();
 }
 
+#if 0
 extern "C"
 {
   void SPIM1_SPIS1_TWIM1_TWIS1_SPI1_TWI1_IRQHandler(void)
@@ -265,3 +266,4 @@ extern "C"
     }
   }
 }
+#endif
