@@ -62,6 +62,7 @@ void setup() {
 
 void loop() {
   ble_feed();//manage ble connection
+
   if (!get_button())watchdog_feed();//reset the watchdog if the push button is not pressed, if it is pressed for more then WATCHDOG timeout the watch will reset
   if (get_sleep()) {//see if we are sleeping
     sleep_wait();//just sleeping
@@ -71,6 +72,7 @@ void loop() {
     check_battery_status();// check battery status. if lower than XX show message
   }
   if (get_timed_int()) {//Theorecticly every 40ms via RTC2 but since the display takes longer its not accurate at all when display on
+    update_accl_data();
     if (get_sleep()) {
       if (acc_input()){
          sleep_up(WAKEUP_ACCL);//check if the hand was lifted and turn on the display if so

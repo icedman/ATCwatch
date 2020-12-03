@@ -58,6 +58,8 @@ class AcclScreen : public Screen
       lv_label_set_text_fmt(label_temp, "Temp: %i", accl_data.temp);
       lv_label_set_text_fmt(label_steps, "Steps: %i", accl_data.steps);
       lv_label_set_text_fmt(label_activity, "Activity: %i", accl_data.activity);
+
+      // delay(250);
     }
 
     virtual void right()

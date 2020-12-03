@@ -49,7 +49,8 @@ imu_status_t LIS3DH::begin( uint16_t accSample,
 
 	//Check the ID register to determine if the operation was a success.
 	uint8_t readCheck;
-	readRegister(&readCheck, LIS3DH_WHO_AM_I);
+	// readRegister(&readCheck, LIS3DH_WHO_AM_I);
+	readRegister(&readCheck, 0x11);
 	if( readCheck != 0x33 )
 	{
 		returnError = IMU_HW_ERROR;

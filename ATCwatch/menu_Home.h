@@ -75,13 +75,15 @@ class HomeScreen : public Screen
       /*
       img_steps = lv_img_create(lv_scr_act(), NULL);
       lv_img_set_src(img_steps, &IsymbolStepsSmall);
-      lv_obj_align(img_steps, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 120, -34);
+      lv_obj_align(img_steps, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 120, 0);
 
       label_steps = lv_label_create(lv_scr_act(), NULL);
       lv_obj_set_width(label_steps, 240);
       lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
       lv_obj_align(label_steps, img_steps, LV_ALIGN_OUT_RIGHT_MID, 2, 0);
+      */
 
+      /*
 
       img_msg = lv_img_create(lv_scr_act(), NULL);
       lv_img_set_src(img_msg, &IsymbolMsgSmall);

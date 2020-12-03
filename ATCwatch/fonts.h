@@ -2713,6 +2713,10 @@ lv_font_t mksd50 = {
     .dsc = &bfont_dsc           /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
 };
 
+#else
+
+#define mksd50 lv_font_roboto_28
+
 #endif /*#if MKSD50*/
 
 /*******************************************************************************
@@ -2722,7 +2726,7 @@ lv_font_t mksd50 = {
  ******************************************************************************/
 
 #ifndef SANS_REGULAR
-#define SANS_REGULAR 1
+#define SANS_REGULAR 0
 #endif
 
 #if SANS_REGULAR
@@ -4851,9 +4855,13 @@ lv_font_t sans_regular = {
     .dsc = &font_dsc           /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
 };
 
+#else
+
+#define sans_regular lv_font_roboto_12
+
 #endif /*#if SANS_REGULAR*/
 #ifndef SANS_BOLD
-#define SANS_BOLD 1
+#define SANS_BOLD 0
 #endif
 
 #if SANS_BOLD
