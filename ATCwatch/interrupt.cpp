@@ -116,9 +116,9 @@ void init_interrupt() {
   last_touch_state = digitalRead(TP_INT);
   NRF_GPIO->PIN_CNF[TP_INT] |= ((uint32_t)  (last_touch_state ? GPIO_PIN_CNF_SENSE_Low : GPIO_PIN_CNF_SENSE_High) << GPIO_PIN_CNF_SENSE_Pos);
 
-  pinMode(BMA421_INT, INPUT);
-  last_accl_state = digitalRead(BMA421_INT);
-  NRF_GPIO->PIN_CNF[BMA421_INT] |= ((uint32_t)  (last_accl_state ? GPIO_PIN_CNF_SENSE_Low : GPIO_PIN_CNF_SENSE_High) << GPIO_PIN_CNF_SENSE_Pos);
+//  pinMode(BMA421_INT, INPUT);
+//  last_accl_state = digitalRead(BMA421_INT);
+//  NRF_GPIO->PIN_CNF[BMA421_INT] |= ((uint32_t)  (last_accl_state ? GPIO_PIN_CNF_SENSE_Low : GPIO_PIN_CNF_SENSE_High) << GPIO_PIN_CNF_SENSE_Pos);
 
   interrupt_enabled = true;
 }
@@ -238,7 +238,7 @@ void disable_interrupt() {
   NRF_GPIO->PIN_CNF[TP_INT] &= ~GPIO_PIN_CNF_SENSE_Msk;
   NRF_GPIO->PIN_CNF[TP_INT] |= (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
 
-  NRF_GPIO->PIN_CNF[BMA421_INT] &= ~GPIO_PIN_CNF_SENSE_Msk;
-  NRF_GPIO->PIN_CNF[BMA421_INT] |= (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
+//  NRF_GPIO->PIN_CNF[BMA421_INT] &= ~GPIO_PIN_CNF_SENSE_Msk;
+//  NRF_GPIO->PIN_CNF[BMA421_INT] |= (GPIO_PIN_CNF_SENSE_Disabled << GPIO_PIN_CNF_SENSE_Pos);
   interrupt_enabled = false;
 }

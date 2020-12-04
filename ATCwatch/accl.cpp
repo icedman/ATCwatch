@@ -101,7 +101,7 @@ bool acc_input() {
 }
 
 bool get_is_looked_at() {
-  // update_accl_data();
+//   update_accl_data();
   if ((accl_data.y + 300) <= 600 && (accl_data.x + 300) <= 600 && accl_data.z < 100)
     return true;
   return false;

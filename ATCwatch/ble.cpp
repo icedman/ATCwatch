@@ -100,6 +100,8 @@ void filterCmd(String Command) {
     start_bootloader();
   } else if (Command.substring(0, 8) == "BT+RESET") {
     set_reboot();
+  } else if (Command.substring(0, 8) == "BT+OFF") {
+    system_off();
   } else if (Command.substring(0, 7) == "AT+RUN=") {
     ble_write("AT+RUN:" + Command.substring(7));
   } else if (Command.substring(0, 8) == "AT+USER=") {

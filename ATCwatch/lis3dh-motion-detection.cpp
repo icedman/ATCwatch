@@ -38,7 +38,7 @@ imu_status_t LIS3DH::begin( uint16_t accSample,
 
 	imu_status_t returnError = IMU_SUCCESS;
 
-  	Wire.begin();
+//  	Wire.begin();
   
 	//Spin for a few ms
 	volatile uint8_t temp = 0;
