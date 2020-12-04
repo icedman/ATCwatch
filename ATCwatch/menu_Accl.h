@@ -55,9 +55,9 @@ class AcclScreen : public Screen
       lv_label_set_text_fmt(label_x, "X: %i", accl_data.x);
       lv_label_set_text_fmt(label_y, "Y: %i", accl_data.y);
       lv_label_set_text_fmt(label_z, "Z: %i", accl_data.z);
-      lv_label_set_text_fmt(label_temp, "Temp: %i", accl_data.temp);
+//      lv_label_set_text_fmt(label_temp, "Temp: %i", accl_data.sx);
       lv_label_set_text_fmt(label_steps, "Steps: %i", accl_data.steps);
-      lv_label_set_text_fmt(label_activity, "Activity: %i", accl_data.activity);
+//      lv_label_set_text_fmt(label_activity, "Activity: %i", accl_data.sy);
 
       // delay(250);
     }

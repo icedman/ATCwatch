@@ -14,8 +14,6 @@
 #include "ble.h"
 #include "sleep.h"
 
-#define USE_SC7A20
-
 struct accl_data_struct accl_data;
 
 #ifdef USE_SC7A20
@@ -24,11 +22,8 @@ struct accl_data_struct accl_data;
 #include "lis3dh-motion-detection.h"
 #include "Wire.h"
 
-int16_t steps = 0;
-uint16_t sampleRate = 25;  // HZ - Samples per second - 1, 10, 25, 50, 100, 200, 400, 1600, 5000
-uint8_t accelRange = 0;   // Accelerometer range = 2, 4, 8, 16g
-
-#define COUNT_STEPS
+uint16_t sampleRate = 10;  // HZ - Samples per second - 1, 10, 25, 50, 100, 200, 400, 1600, 5000
+uint8_t accelRange = 2;   // Accelerometer range = 2, 4, 8, 16g
 
 #ifdef COUNT_STEPS
 #include "count_steps.h"
@@ -73,11 +68,11 @@ void reset_accl() {
 }
 
 void reset_step_counter() {
-  steps = 0;
+  accl_data.steps = 0;
 }
 
 uint32_t read_step_data() {
-  return steps;
+  return accl_data.steps;
 }
 
 int last_y_acc = 0;
@@ -117,6 +112,7 @@ accl_data_struct get_accl_data() {
   return accl_data;
 }
 
+int8_t accum_skip = 0;
 void update_accl_data() {
   int16_t dataHighres = 0;
 
@@ -139,14 +135,16 @@ void update_accl_data() {
   accl_data.z = (dataHighres / 0x10);
 
 #ifdef COUNT_STEPS
-  accum[accumIndex++] = accl_data.x;
-  accum[accumIndex++] = accl_data.y;
-  accum[accumIndex++] = accl_data.z;
-  if (accumIndex >= ACCUM_LENGTH) {
-    steps += count_steps(accum);
-    accumIndex = 0;
+  if (accum_skip++ > 0) {
+    accum_skip = 0;
+    accum[accumIndex++] = ((float)accl_data.x / 1000) * 127;
+    accum[accumIndex++] = ((float)accl_data.y / 1000) * 127;
+    accum[accumIndex++] = ((float)accl_data.z / 1000) * 127;
+    if (accumIndex >= ACCUM_LENGTH) {
+      accl_data.steps += count_steps(accum);
+      accumIndex = 0;
+    }
   }
-  accl_data.steps = steps;
 #endif
 
 }

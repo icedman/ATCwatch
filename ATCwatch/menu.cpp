@@ -75,17 +75,17 @@ app_struct touchApp = {"Touch", &IsymbolMouse , &touchScreen};
 app_struct httpApp = {"HTTP", &IsymbolMouse , &httpScreen};
 app_struct logApp = {"Logging", &IsymbolAnimation , &logScreen};
 
-int maxApps = 4;
-AppScreen apps1Screen(1, maxApps, &notifyApp, &heartApp, &debugApp, &animationApp);
-AppScreen apps2Screen(2, maxApps, &rebootApp, &updateApp, &offApp, &settingsApp);
-AppScreen apps3Screen(3, maxApps, &infosApp, &acclApp, &demoApp, &batteryApp);
-AppScreen apps4Screen(4, maxApps, &flashApp, &touchApp, &httpApp, &logApp);
-// AppScreen apps5Screen(5, maxApps, &settingsApp1, &settingsApp2, &settingsApp3, &settingsApp4);
+int maxApps = 1;
+// AppScreen apps1Screen(1, maxApps, &notifyApp, &heartApp, &debugApp, &animationApp);
+// AppScreen apps2Screen(2, maxApps, &rebootApp, &updateApp, &offApp, &settingsApp);
+// AppScreen apps3Screen(3, maxApps, &infosApp, &acclApp, &demoApp, &batteryApp);
+// AppScreen apps4Screen(4, maxApps, &flashApp, &touchApp, &httpApp, &logApp);
 
-Screen_def *menus[6] = {&homeScreen, &apps1Screen, &apps2Screen, &apps3Screen, &apps4Screen }; // , &apps5Screen};
+AppScreen apps1Screen(1, maxApps, &&heartApp, &rebootApp, &updateApp, &offApp);
+
+Screen_def *menus[] = {&homeScreen, &apps1Screen };
 
 void init_menu() {
-
 }
 
 void display_home() {

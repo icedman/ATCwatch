@@ -72,7 +72,7 @@ class HomeScreen : public Screen
       lv_label_set_text_fmt(label_heart, "%i", get_last_heartrate());
       lv_obj_align(label_heart, img_heart, LV_ALIGN_OUT_RIGHT_MID, 2, 0);
 
-      /*
+#ifdef COUNT_STEPS
       img_steps = lv_img_create(lv_scr_act(), NULL);
       lv_img_set_src(img_steps, &IsymbolStepsSmall);
       lv_obj_align(img_steps, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 120, 0);
@@ -81,7 +81,7 @@ class HomeScreen : public Screen
       lv_obj_set_width(label_steps, 240);
       lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
       lv_obj_align(label_steps, img_steps, LV_ALIGN_OUT_RIGHT_MID, 2, 0);
-      */
+#endif
 
       /*
 
@@ -114,8 +114,9 @@ class HomeScreen : public Screen
       lv_label_set_text_fmt(label_battery, "%i%%", get_battery_percent());
 
       lv_label_set_text_fmt(label_heart, "%i", get_last_heartrate());
-      // lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
-
+#ifdef COUNT_STEPS
+      lv_label_set_text_fmt(label_steps, "%i", accl_data.steps);
+#endif
       if (get_vars_ble_connected())
         style_ble.text.color = LV_COLOR_MAKE(0x27, 0xA6, 0xFF);
       else

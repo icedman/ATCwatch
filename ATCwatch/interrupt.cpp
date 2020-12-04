@@ -68,6 +68,7 @@ void GPIOTE_IRQHandler()
       NRF_GPIO->PIN_CNF[TP_INT] |= ((last_touch_state ? GPIO_PIN_CNF_SENSE_Low : GPIO_PIN_CNF_SENSE_High) << GPIO_PIN_CNF_SENSE_Pos);
       if (last_touch_state == false)set_touch_interrupt();
     }
+    /*
     bool accl_pin = digitalRead(BMA421_INT);
     if (accl_pin != last_accl_state) {
       last_accl_state = accl_pin;
@@ -75,6 +76,7 @@ void GPIOTE_IRQHandler()
       NRF_GPIO->PIN_CNF[BMA421_INT] |= ((last_accl_state ? GPIO_PIN_CNF_SENSE_Low : GPIO_PIN_CNF_SENSE_High) << GPIO_PIN_CNF_SENSE_Pos);
       if (last_accl_state == false)set_accl_interrupt();
     }
+    */
   }
   (void)NRF_GPIOTE->EVENTS_PORT;
 }

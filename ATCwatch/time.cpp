@@ -15,10 +15,10 @@ time_data_struct time_data;
 
 void init_time() {
   int year = 2020;
-  int month = 12;
-  int day = 3;
+  int month = 1;
+  int day = 1;
   int hr = 8;
-  int min = 4;
+  int min = 0;
   int sec = 0;
   setTime( hr, min, sec, day, month, year);
 }

@@ -8,6 +8,9 @@
 
 #include "Arduino.h"
 
+#define USE_SC7A20
+// #define COUNT_STEPS
+
 struct accl_data_struct {
   int16_t x;
   int16_t y;
