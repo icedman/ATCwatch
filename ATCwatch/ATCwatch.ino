@@ -45,27 +45,16 @@ void setup() {
   display_booting();
   set_backlight(3);
   init_battery();
-  display_booting(1);
   init_hrs3300();
-  display_booting(2);
   init_time();
-  display_booting(3);
   init_touch();
-  display_booting(4);
   init_sleep();
-  display_booting(5);
   init_menu();
-  display_booting(6);
   init_push();
-  display_booting(7);
   init_flash();
-  display_booting(8);
   init_accl();
-  display_booting(9);
   init_ble();//must be before interrupts!!!
-  display_booting(10);
   init_interrupt();//must be after ble!!!
-  display_booting(11);
   delay(100);
   set_backlight(3);
   display_home();

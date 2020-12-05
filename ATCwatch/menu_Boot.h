@@ -20,7 +20,7 @@
 #include <lvgl.h>
 
 
-int where = 0;
+// int where = 0;
 
 class BootScreen : public Screen
 {
@@ -41,12 +41,12 @@ class BootScreen : public Screen
 
     virtual void main()
     {
-      lv_label_set_text_fmt(label, "%d",where);
+      // lv_label_set_text_fmt(label, "%d",where);
     }
 
-    void setWhere(int w) {
-      where = w;
-    }
+    // void setWhere(int w) {
+    //   where = w;
+    // }
 
   private:
 

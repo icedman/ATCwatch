@@ -110,11 +110,10 @@ void display_charging() {
   vars_menu = 0;
 }
 
-void display_booting(int w) {
+void display_booting() {
   set_gray_screen_style();
   lastScreen = currentScreen;
   currentScreen = &bootScreen;
-  bootScreen.setWhere(w);
   oldScreen = &bootScreen;
   set_swipe_enabled(false);
   currentScreen->pre_display();
