@@ -4857,7 +4857,7 @@ lv_font_t sans_regular = {
 
 #else
 
-#define sans_regular lv_font_roboto_12
+#define sans_regular lv_font_roboto_16
 
 #endif /*#if SANS_REGULAR*/
 #ifndef SANS_BOLD
@@ -7154,7 +7154,7 @@ lv_font_t sans_bold = {
  ******************************************************************************/
 
 #ifndef SANS_BOLD28
-#define SANS_BOLD28 1
+#define SANS_BOLD28 0
 #endif
 
 #if SANS_BOLD28
@@ -9981,5 +9981,9 @@ lv_font_t sans_bold28 = {
 #endif
     .dsc = &hfont_dsc           /*The custom font data. Will be accessed by `get_glyph_bitmap/dsc` */
 };
+
+#else
+
+#define sans_bold28 lv_font_roboto_28
 
 #endif /*#if SANS_BOLD28*/
