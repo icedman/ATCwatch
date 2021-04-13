@@ -18,15 +18,21 @@
 #define TOUCH_LONG_PRESS 0x0C
 
 struct touch_data_struct {
-  byte gesture;
-  byte touchpoints;
-  byte event;
-  int xpos;
-  int ypos;
-  int last_xpos;
-  int last_ypos;
-  uint8_t version15;
-  uint8_t versionInfo[3];
+    byte gesture;
+    byte touchpoints;
+    byte event;
+    byte last_gesture;
+    int xpos;
+    int ypos;
+    int last_xpos;
+    int last_ypos;
+    long last_time;
+    int start_xpos;
+    int start_ypos;
+    long start_time;
+    uint8_t version15;
+    uint8_t versionInfo[3];
+    bool down;
 };
 void init_touch();
 void sleep_touch(bool state);
@@ -35,4 +41,5 @@ bool get_new_touch_interrupt();
 bool get_was_touched();
 void set_was_touched(bool state);
 void get_read_touch();
+void clear_touch();
 touch_data_struct get_touch();

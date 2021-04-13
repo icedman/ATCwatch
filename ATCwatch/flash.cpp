@@ -25,68 +25,68 @@ bool flash_sleeping = false;
 uint8_t temp[8];
 
 void init_flash() {
-  pinMode(SPI_CE, OUTPUT);
-  digitalWrite(SPI_CE, HIGH);
-  flash_sleep(true);
+    pinMode(SPI_CE, OUTPUT);
+    digitalWrite(SPI_CE, HIGH);
+    flash_sleep(true);
 }
 
 void flash_sleep(int state)
 {
-  startWrite_flash();
-  delay(10);
-  if ( state )
-  {
-    temp[0] = SPIFLASH_DP;
-    write_fast_spi(temp, 1);
-  }
-  else
-  {
-    do
+    startWrite_flash();
+    delay(10);
+    if ( state )
     {
-      temp[0] = SPIFLASH_RDP;
-      temp[1] = 0x01;
-      temp[2] = 0x20;
-      temp[3] = 0x30;
-      write_fast_spi(temp, 4);
-      read_fast_spi(temp, 3);
+        temp[0] = SPIFLASH_DP;
+        write_fast_spi(temp, 1);
     }
-    while (temp[0] != 0x15 && temp[1] != 0x15 && temp[2] != 0x15);
-  }
-  endWrite_flash();
-  flash_sleeping = state;
+    else
+    {
+        do
+        {
+            temp[0] = SPIFLASH_RDP;
+            temp[1] = 0x01;
+            temp[2] = 0x20;
+            temp[3] = 0x30;
+            write_fast_spi(temp, 4);
+            read_fast_spi(temp, 3);
+        }
+        while (temp[0] != 0x15 && temp[1] != 0x15 && temp[2] != 0x15);
+    }
+    endWrite_flash();
+    flash_sleeping = state;
 }
 
 uint16_t flash_read_id()
 {
-  if (flash_sleeping)
-    flash_sleep(false);
-  startWrite_flash();
-  temp[0] = SPIFLASH_IDREAD;
-  write_fast_spi(temp, 1);
-  read_fast_spi(temp, 2);
-  endWrite_flash();
-  flash_sleep(true);
-  return (temp[0] << 8 | temp[1]);
+    if (flash_sleeping)
+        flash_sleep(false);
+    startWrite_flash();
+    temp[0] = SPIFLASH_IDREAD;
+    write_fast_spi(temp, 1);
+    read_fast_spi(temp, 2);
+    endWrite_flash();
+    flash_sleep(true);
+    return (temp[0] << 8 | temp[1]);
 }
 
 
 void get_temp(uint8_t *ptr) {
-  ptr[0] = temp[0];
-  ptr[1] = temp[1];
-  ptr[2] = temp[2];
-  ptr[3] = temp[3];
-  ptr[4] = temp[4];
-  ptr[5] = temp[5];
-  ptr[6] = temp[6];
-  ptr[7] = temp[7];
+    ptr[0] = temp[0];
+    ptr[1] = temp[1];
+    ptr[2] = temp[2];
+    ptr[3] = temp[3];
+    ptr[4] = temp[4];
+    ptr[5] = temp[5];
+    ptr[6] = temp[6];
+    ptr[7] = temp[7];
 }
 
 void startWrite_flash(void) {
-  enable_spi(true);
-  digitalWrite(SPI_CE , LOW);
+    enable_spi(true);
+    digitalWrite(SPI_CE, LOW);
 }
 
 void endWrite_flash(void) {
-  digitalWrite(SPI_CE , HIGH);
-  enable_spi(false);
+    digitalWrite(SPI_CE, HIGH);
+    enable_spi(false);
 }

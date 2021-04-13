@@ -13,7 +13,7 @@
 
 class Screen : public Screen_def
 {
-  public:
+public:
     virtual void pre()
     {
     }
@@ -40,7 +40,7 @@ class Screen : public Screen_def
 
     virtual void right()
     {
-      set_last_menu();
+        set_last_menu();
     }
 
     virtual void click(touch_data_struct touch_data)
@@ -53,7 +53,7 @@ class Screen : public Screen_def
 
     virtual void button_push(int length)
     {
-      display_home();
-      set_motor_ms(40);
+        display_home();
+        set_motor_ms(40);
     }
 };
