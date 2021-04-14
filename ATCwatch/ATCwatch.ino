@@ -24,6 +24,7 @@
 #include "accl.h"
 #include "push.h"
 #include "flash.h"
+#include "pedometer.h"
 
 #include "asteroidsfont.h"
 
@@ -57,7 +58,10 @@ void setup() {
     init_accl();
     init_ble();//must be before interrupts!!!
     init_interrupt();//must be after ble!!!
-    // initAsteroids();
+    initAsteroids();
+
+    pedometer_init();
+
     delay(100);
     set_backlight(3);
 
@@ -90,15 +94,16 @@ void loop() {
     }
 
     if (get_timed_int()) {//Theorecticly every 40ms via RTC2 but since the display takes longer its not accurate at all when display on
-        // update_accl_data();        
+        update_accl_data();
+        pedometer_calculate();
+
         if (get_sleep()) {
-            // if (acc_input()) {
-                // sleep_up(WAKEUP_ACCL);//check if the hand was lifted and turn on the display if so
-            // }
+            if (acc_input()) {
+                sleep_up(WAKEUP_ACCL);//check if the hand was lifted and turn on the display if so
+            }
         }
 
-        time_data_struct time_data = get_time();
-
+        // time_data_struct time_data = get_time();
         // if (time_data.hr == 0) {// check for new day
         //     if (!stepsWhereReseted) {//reset steps on a new day
         //         stepsWhereReseted = true;

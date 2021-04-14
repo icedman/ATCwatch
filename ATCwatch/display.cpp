@@ -21,12 +21,10 @@
 #include "time.h"
 #include "push.h"
 
-#include "touch.h"
 #include "time.h"
-#include "battery.h"
-#include "heartrate.h"
 #include "sleep.h"
-// #include "asteroidsfont.h"
+#include "pedometer.h"
+#include "asteroidsfont.h"
 
 #include "watchface.h"
 
@@ -250,6 +248,10 @@ void drawCharPixelToBuffer(coord charPos, uint8_t pixelsPerPixel, bool pixelInCh
   Write a string to the specified position using a string literal (null terminated char array)
 */
 void drawString(coord pos, uint8_t pixelsPerPixel, char* string, uint16_t colourFG, uint16_t colourBG) {
+
+    asteroidDrawString(pos.x, pos.y, string, 0.5 + ((float)pixelsPerPixel/4), colourFG);
+    return;
+
     int currentLine = 0;      //Current line
     int charPos = 0;          //Position of the character we are on along the line
     int i = 0;                //Character index
@@ -434,11 +436,11 @@ void drawPixel(framebuffer *buffer, int x,int y,byte color)
     *pDest=color;
 }
 
-void drawLine(framebuffer *buffer,int x,int y,int x2,int y2,byte color)
+void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
 {
-    if (buffer->pixels == 0) {
-        buffer->pixels = lcdBuffer;
-    }
+    // if (buffer->pixels == 0) {
+    //     buffer->pixels = lcdBuffer;
+    // }
 
     int lx=FPABS((x-x2));
     int ly=FPABS((y-y2));
@@ -456,7 +458,13 @@ void drawLine(framebuffer *buffer,int x,int y,int x2,int y2,byte color)
     yy=FPDIV(yy,fl);
 
     while(l>0) {
-        drawPixel(buffer,(sx>>FPP),(sy>>FPP),color);
+        coord pos;
+        pos.x = sx >> FPP;
+        pos.y = sy >> FPP;
+        if (pos.x < 240 || pos.y < 240) {
+            drawFilledRect(pos, 1, 1, color);
+        }
+        // drawPixel(buffer,(sx>>FPP),(sy>>FPP),color);
         sx+=xx;
         sy+=yy;
         l--;
@@ -494,28 +502,50 @@ void padSpaces(char *tmp, int c) {
 
 touch_data_struct td;
 
+static int infoHash = 0;
 void _display_info()
 {
-    int x = 36;
-    int y = 18;
+    // accl_data_struct accl = get_accl_data();
+
+    int x = 24;
+    int y = 24;
     char tmp[32];
-    sprintf(tmp, "ICEDMAN %d %d", td.xpos, td.ypos);
+    // sprintf(tmp, "ICEDMAN %d %d", accl.x, accl.y);
+    sprintf(tmp, "ICEDMAN");
     padSpaces(tmp, 4);
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
     y += 24 + 2;
 }
 
+static int prevInfoHash = 0;
 void _display_screen()
 {
-    int x = 36;
-    int y = 24;    
-    drawFilledRect({ x,y }, 10, 10, COLOUR_YELLOW);
-    y += 32;
+    get_heartrate_ms();
+    int heart = get_heartrate();
+    int bat = get_battery_percent();
 
     char tmp[32];
-    sprintf(tmp, "ICEDMAN %d %d", currentScreen, td.gesture);
-    padSpaces(tmp, 4);
-    drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
+    int ii = 0;
+    int steps = get_steps();
+    time_data_struct time = get_time();
+    tmp[ii++] = time.hr;
+    tmp[ii++] = time.min;
+    tmp[ii++] = time.day;
+    tmp[ii++] = bat;
+    tmp[ii++] = heart;
+    tmp[ii++] = steps;
+    tmp[ii++] = 0;
+
+    int hs = dataHash(tmp);
+    if (hs == prevInfoHash) {
+        return;
+    }
+    prevInfoHash = hs;
+
+    _display_info();
+
+    int x = 24;
+    int y = 24;
     y += 24 + 2;
 
     getTime(tmp);
@@ -533,20 +563,23 @@ void _display_screen()
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
     y += 24;
 
-    int bat = get_battery_percent();
     sprintf(tmp, "power: %d", bat);
     padSpaces(tmp, 4);
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
     y += 24;
 
-    get_heartrate_ms();
-    int heart = get_heartrate();
     sprintf(tmp, "heart: %d",heart);
     padSpaces(tmp, 4);
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
     y += 24;
 
+    sprintf(tmp, "steps: %d",steps);
+    padSpaces(tmp, 4);
+    drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
+    y += 24;
+
     // asteroidDrawChar(32, 80, 'X', 4, COLOUR_RED);
+    // asteroidDrawString(32, 80, "HELLO", 3, COLOUR_RED);
 }
 
 void display_screen()
@@ -557,36 +590,64 @@ void display_screen()
         return;
     }
     watchface_draw();
-    _display_info();
 }
 
 void handle_events()
 {
+    if (get_button()) {
+        if (currentScreen != 0) {
+            currentScreen = 0;
+            watchface_clear();
+            set_sleep_time();
+            return;
+        } else {
+            if (!get_sleep()) {
+                sleep_down();
+            }
+        }
+    }
+
     td = get_touch();
 
     if (td.gesture == TOUCH_SLIDE_DOWN) {
         currentScreen ++;
+        prevInfoHash = 0;
         watchface_clear();
         set_sleep_time();
 
-        if (currentScreen == 1) {
-            start_hrs3300();
-        } else {
-            end_hrs3300();
-        }
+        // if (currentScreen == 1) {
+        //     start_hrs3300();
+        // } else {
+        //     end_hrs3300();
+        // }
 
     } else if (td.gesture == TOUCH_SLIDE_UP) {
         currentScreen --;
+        prevInfoHash = 0;
         watchface_clear();
         set_sleep_time();
 
-        if (currentScreen == 1) {
-            start_hrs3300();
-        } else {
-            end_hrs3300();
-        }
+        // if (currentScreen == 1) {
+        //     start_hrs3300();
+        // } else {
+        //     end_hrs3300();
+        // }
     }
 
     if (currentScreen < 0) currentScreen = 1;
     if (currentScreen > 1) currentScreen = 0;
+}
+
+unsigned int dataHash(const char *s)
+{
+    int hash = 0;
+
+    while (*s != 0)
+    {
+        hash *= 37;
+            hash += *s;
+        s++;
+    }
+
+    return hash;
 }

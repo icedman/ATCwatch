@@ -91,24 +91,31 @@ void initAsteroids() {
 }
 
 int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extentsOnly) { 
+
     framebuffer buffer;
     float width = 8 * size;
     float height = 8 * size;
-    coord pos = { x, y };
+    float ww = width * 1.5;
+    float hh = height * 1.5;
+    coord pos = { x, y + height };
 
     int characterDispWidth = width;
     int characterDispHeight = height;
 
-    buffer.width = width;
-    buffer.height = height;
-    buffer.pitch = width;
-
-    if (!extentsOnly) {
-        drawFilledRect(pos, characterDispWidth, characterDispHeight, COLOUR_CYAN);
+    if (x < 240 && y < 240) {
+        drawFilledRect({x, y - hh}, ww, hh + 1, 0x0000);
     }
 
-    if (!extentsOnly) startWrite_display();
-    if (!extentsOnly) setDisplayWriteRegion({pos.x, pos.y}, characterDispWidth, characterDispHeight);
+    // buffer.width = width;
+    // buffer.height = height;
+    // buffer.pitch = width;
+
+    if (!extentsOnly) {
+        // drawFilledRect(pos, characterDispWidth, characterDispHeight, COLOUR_CYAN);
+    }
+
+    // if (!extentsOnly) startWrite_display();
+    // if (!extentsOnly) setDisplayWriteRegion({pos.x, pos.y}, characterDispWidth, characterDispHeight);
 
 #ifdef ENABLE_ASTEROIDS
     byte *pts = asteroids_font[(int)c - ' '].points;
@@ -128,7 +135,7 @@ int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extents
         }
 
         float dx = ((delta >> 4) & 0xF) * size;
-        float dy = ((delta >> 0) & 0xF) * size;
+        float dy = -((delta >> 0) & 0xF) * size;
 
         if (next_moveto != 0) {
             // moveto(x + dx, y + dy);
@@ -149,10 +156,14 @@ int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extents
             if (!extentsOnly) {
                 drawLine(
                     &buffer,
-                  (int)startPosition.x - pos.x,
-                  (int)startPosition.y - pos.y,
-                  (int)nextPosition.x - pos.x,
-                  (int)nextPosition.y - pos.y,
+                  // (int)startPosition.x - pos.x,
+                  // (int)startPosition.y - pos.y,
+                  // (int)nextPosition.x - pos.x,
+                  // (int)nextPosition.y - pos.y,
+                  (int)startPosition.x,
+                  (int)startPosition.y,
+                  (int)nextPosition.x,
+                  (int)nextPosition.y,
                   clr
                 );
             }
@@ -168,11 +179,11 @@ int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extents
         adv = 12 * size;
     }
 
-    if (!extentsOnly) spiCommand(0x2C);
+    // if (!extentsOnly) spiCommand(0x2C);
     //Size 8 is probably the largest useful font, and at that size, a character takes up < 6000 bytes in the buffer, meaning we are nowhere near to filling up the buffer with a character
-    write_fast_spi(buffer.pixels, characterDispWidth * characterDispHeight * 2);  //Write the character to the display
+    // write_fast_spi(buffer.pixels, characterDispWidth * characterDispHeight * 2);  //Write the character to the display
 
-    if (!extentsOnly) endWrite_display();
+    // if (!extentsOnly) endWrite_display();
     return (int)adv;
 #else
     return 0;
@@ -182,6 +193,16 @@ int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extents
 int asteroidDrawString(float x, float y, char *str, float size, int clr, bool extentsOnly)
 {
 #ifdef ENABLE_ASTEROIDS
+    int adv = 0;
+    char *cc = str;
+    while(cc[0] != 0) {
+        char c = cc[0];
+        if (c >= 'a' && c <= 'z') {
+            c += 'A' - 'a';
+        }
+        adv += asteroidDrawChar(x + adv, y, c, size, clr);
+        cc++;
+    }
     return 0;
 #else
     return 0;

@@ -12,7 +12,7 @@
 #define READ32(src, p) (((uint32_t)(src[p+3]) << 24) | ((uint32_t)(src[p+2]) << 16) | \
                     ((uint32_t)(src[p+1]) << 8) | (uint32_t)(src[p]))
 
-#define NORMALIZE(v, source, target) ((v / source) * target )
+#define NORMALIZE(v, source, target) round((v / source) * target)
 
 #define EntitiesOffset 11
 #define SpriteOffsetsOffset 200
@@ -25,6 +25,14 @@
 #define MAX_SPRITES 64
 
 static bool hasBg;
+
+#ifndef NORMALIZE
+uint8_t NORMALIZE(uint8_t value, uint8_t source, uint8_t target) {
+    // uint16_t res = (value & 0xff) * target / source;
+    uint16_t res = (((float)value / source) * target);
+    return res & 0xff;
+}
+#endif
 
 void watchface_init(void)
 {
@@ -105,29 +113,17 @@ void draw_sprite(int id, int x, int y, int w, int h)
         uint16_t pixel = READ16(ptr, i);
         uint8_t sz = ptr[i+2];
 
-        uint8_t gg = NORMALIZE((pixel >> (5 + 6)) & 0x1f, 0x1f, 0xff);
-        uint8_t bb = NORMALIZE((pixel >> 5) & 0x3f, 0x3f, 0xff);
-        uint8_t rr = NORMALIZE(pixel & 0x1f, 0x1f, 0xff);
+        uint8_t rr = NORMALIZE((pixel >> (5 + 6)) & 0x1f, 0x1f, 0xff);
+        uint8_t gg = NORMALIZE((pixel >> 5) & 0x3f, 0x3f, 0xff);
+        uint8_t bb = NORMALIZE(pixel & 0x1f, 0x1f, 0xff);
         // uint16_t rgb = (rr << (5+6)) | (gg << 5) | bb;
-        uint16_t rgb = (bb << (5+6)) | (gg << 5) | rr;
+        uint16_t rgb = (gg << (5+6)) | (rr << 5) | bb;
 
-#if 0
-        for(int k =0; k<sz; k++) {
-
-            coord pos;
-            pos.x = x + px;
-            pos.y = y + py;
-
-            drawFilledRect(pos, 1, 1, rgb);
-
-            px++;
-            if (px >= w) {
-                px = 0;
-                py ++;
-                if (py >= h) break;
-            }
-        }
-#endif
+        // if (rr + gg + bb > 0) {
+        //     rgb = (0x00 << (5+6)) | (0xff << 5) | 0x00;
+        // } else {
+        //     rgb = 0;
+        // }
 
         for(int k=0; k<sz; ) {
             int ssz = sz - k;
@@ -135,7 +131,6 @@ void draw_sprite(int id, int x, int y, int w, int h)
                 ssz = w - px;
             }
 
-            // display_draw_hline(x + px, y + py, ssz, rgb);
             coord pos;
             pos.x = x + px;
             pos.y = y + py;
@@ -151,28 +146,14 @@ void draw_sprite(int id, int x, int y, int w, int h)
     }
 }
 
-unsigned int Hash(const char *s)
-{
-    int hash = 0;
-
-    while (*s != 0)
-    {
-        hash *= 37;
-            hash += *s;
-        s++;
-    }
-
-    return hash;
-}
-
 static uint32_t prevHash  = 0;
 void watchface_draw(void)
 {  
     // background
     // if (hasBg) {
-        // for (int i = 0; i < 5; i++) {
-        //     draw_sprite(i, 0, 24*i, 240, 24);
-        // }
+    //     for (int i = 0; i < 10; i++) {
+    //         draw_sprite(i, 0, 24*i, 240, 24);
+    //     }
     // }
 
     time_data_struct tm = get_time();
@@ -187,7 +168,7 @@ void watchface_draw(void)
     tmp[ii++] = get_battery_percent();
     tmp[ii++] = 0;
 
-    uint32_t hs = Hash(tmp);
+    uint32_t hs = dataHash(tmp);
     if (hs == prevHash) return;
     prevHash = hs;
 
@@ -210,11 +191,40 @@ void watchface_draw(void)
         case 0x44:
             id = g->sprite + (tm.min % 10);
             break;
+
+        case 0x11: // month
+            draw_sprite(id + ((tm.month / 10) % 10), g->x, g->y, g->w, g->h);
+            draw_sprite(id + (tm.month % 10), g->x + g->w, g->y, g->w, g->h);
+            continue;
+
+        case 0x30: // day
+            draw_sprite(id + ((tm.day / 10) % 10), g->x, g->y, g->w, g->h);
+            draw_sprite(id + (tm.day % 10), g->x + g->w, g->y, g->w, g->h);
+            continue;
+
+        case 0x12: // year
+        {
+            int yt = ((tm.year / 1000) % 10);
+            int yh = (((tm.year - yt * 1000) / 100) % 10);
+            int yx = (((tm.year - yt * 1000 - yh * 100) / 10) % 10);
+            int yl = (((tm.year - yt * 1000 - yh * 100 - yx * 10)) % 10);
+            int xx = g->x - g->w * 2;
+
+            draw_sprite(id + yt, xx, g->y, g->w, g->h);
+            draw_sprite(id + yh, xx + g->w, g->y, g->w, g->h);
+            draw_sprite(id + yx, xx + g->w * 2, g->y, g->w, g->h);
+            draw_sprite(id + yl, xx + g->w * 3, g->y, g->w, g->h);
+        }
+            continue;
+
         case 0x60:
         case 0x61:
             id = g->sprite + (dofw % 7);
             break;
-        // case 0xd4:
+
+        case 0xd4:
+            // id = g->sprite + (10 * (get_battery_percent() / 100));
+            break;
         case 0xd1: // battery icon
             id = g->sprite;
             // id = g->sprite + (get_battery_percent() / 100);
@@ -239,9 +249,6 @@ void watchface_draw(void)
         if (g->type == 0xd1) {
             int p = 2;
             int ww = g->w * get_battery_percent() / 100;
-            // for(int i=p; i<g->h-(p*2); i++) {
-            //     display_draw_hline(g->x + ww + p, g->y + i, g->w - ww - (p*2) - 1, 0);
-            // }
             coord pos;
             pos.x = g->x + ww +p;
             pos.y = g->y + p;

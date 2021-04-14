@@ -71,6 +71,7 @@ void set_was_touched(bool state) {
     was_touched = state;
 }
 
+int last_gesture = -1;
 void get_read_touch() {
     if (!touch_enable)init_touch();
 
@@ -116,6 +117,13 @@ touch_data_struct get_touch() {
     touch_data_struct _touch_data = touch_data;
     if (!touch_data.down) {
         touch_data.start_time = 0;
+    }
+
+    if (last_gesture == touch_data.gesture) {
+        last_gesture = -1;
+        _touch_data.gesture = 0;
+    } else {
+        last_gesture = touch_data.gesture;
     }
 
     // menu navigation here?

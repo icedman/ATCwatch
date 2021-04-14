@@ -77,12 +77,14 @@ void drawUnfilledRect(coord pos, uint32_t w, uint32_t h, uint8_t lineWidth, uint
 void drawUnfilledRectWithChar(coord pos, uint32_t w, uint32_t h, uint8_t lineWidth, uint16_t rectColour, char character, uint8_t fontSize);
 // void writeNewChar(coord pos, char toWrite);
 
-void drawPixel(framebuffer *buffer, int x,int y,byte color);
-void drawLine(framebuffer *buffer,int x,int y,int x2,int y2,byte color);
+void drawPixel(framebuffer *buffer, int x,int y, uint32_t color);
+void drawLine(framebuffer *buffer, int x,int y,int x2,int y2, uint32_t color);
 
 void display_booting();
 void display_home();
 void display_charging();
 void display_screen();
+
+unsigned int dataHash(const char *s);
 
 void handle_events();
