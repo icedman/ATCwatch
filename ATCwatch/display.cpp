@@ -222,6 +222,7 @@ void drawChar(coord pos, uint8_t pixelsPerPixel, char character, uint16_t colour
   (logic is explained in Writeup.md)
 */
 void drawCharPixelToBuffer(coord charPos, uint8_t pixelsPerPixel, bool pixelInCharHere, uint16_t colourFG, uint16_t colourBG) {
+#ifndef ENABLE_ASTEROIDS
     int columnFontIndexScaledByPixelCount = charPos.x * pixelsPerPixel;
     int rowFontIndexScaledByPixelCount = charPos.y * pixelsPerPixel;
     int pixelsPerRow = FONT_WIDTH * pixelsPerPixel;
@@ -243,16 +244,16 @@ void drawCharPixelToBuffer(coord charPos, uint8_t pixelsPerPixel, bool pixelInCh
             }
         }
     }
+#endif
 }
 
 /*
   Write a string to the specified position using a string literal (null terminated char array)
 */
 void drawString(coord pos, uint8_t pixelsPerPixel, char* string, uint16_t colourFG, uint16_t colourBG) {
-
+#ifdef ENABLE_ASTEROIDS
     asteroidDrawString(pos.x, pos.y, string, 0.5 + ((float)pixelsPerPixel/4), colourFG);
-    return;
-
+#else
     int currentLine = 0;      //Current line
     int charPos = 0;          //Position of the character we are on along the line
     int i = 0;                //Character index
@@ -264,6 +265,7 @@ void drawString(coord pos, uint8_t pixelsPerPixel, char* string, uint16_t colour
         charPos++;
         i++;
     }
+#endif
 }
 
 /*
@@ -271,6 +273,9 @@ void drawString(coord pos, uint8_t pixelsPerPixel, char* string, uint16_t colour
   The logic for writing the string is basically the same as drawString
 */
 void drawIntWithoutPrecedingZeroes(coord pos, uint8_t pixelsPerPixel, int toWrite, uint16_t colourFG, uint16_t colourBG) {
+
+#ifndef ENABLE_ASTEROIDS
+
     if (toWrite == 0) {
         drawChar({pos.x, pos.y}, pixelsPerPixel, '0', colourFG, colourBG);
         return;
@@ -304,12 +309,16 @@ void drawIntWithoutPrecedingZeroes(coord pos, uint8_t pixelsPerPixel, int toWrit
         drawChar({pos.x + charPos * pixelsPerPixel * FONT_WIDTH + pixelsPerPixel * charPos, pos.y + currentLine * FONT_HEIGHT * pixelsPerPixel}, pixelsPerPixel, charToWrite[0], colourFG, colourBG);
         charPos++;
     }
+
+#endif
 }
 
 /*
   Write a number always with 9 digits to x,y (with preceding zeroes for variable length rewrites)
 */
 void drawIntWithPrecedingZeroes(coord pos, uint8_t pixelsPerPixel, int toWrite, uint16_t colourFG, uint16_t colourBG) {
+
+#ifndef ENABLE_ASTEROIDS
     if (toWrite == 0) {
         drawString({pos.x, pos.y}, pixelsPerPixel, "000000000", colourFG, colourBG);
         return;
@@ -337,6 +346,7 @@ void drawIntWithPrecedingZeroes(coord pos, uint8_t pixelsPerPixel, int toWrite, 
         drawChar({pos.x + charPos * pixelsPerPixel * FONT_WIDTH + pixelsPerPixel * charPos, pos.y + currentLine * FONT_HEIGHT * pixelsPerPixel}, pixelsPerPixel, charToWrite[0], colourFG, colourBG);
         charPos++;
     }
+#endif
 }
 
 /*
@@ -466,6 +476,22 @@ void drawPixel(framebuffer *buffer, int x,int y,byte color)
 
 void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
 {
+    if (y == y2) {
+        coord pos;
+        pos.x = x < x2 ? x : x2;
+        pos.y = y < y2 ? y : y2;
+        drawFilledRect(pos, abs(x - x2), 1, color);
+        return;
+    }
+
+    if (x == x2) {
+        coord pos;
+        pos.x = x < x2 ? x : x2;
+        pos.y = y < y2 ? y : y2;
+        drawFilledRect(pos, 1, abs(y - y2), color);
+        return;
+    }
+
     // if (buffer->pixels == 0) {
     //     buffer->pixels = lcdBuffer;
     // }
@@ -506,6 +532,7 @@ void display_booting()
 {
     clearDisplay();
     drawFilledRect({32,32}, 10, 10, COLOUR_RED);
+    // drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
 }
 
 void display_home()
@@ -568,6 +595,9 @@ void _display_screen()
     if (hs == prevInfoHash) {
         return;
     }
+
+    // clearDisplay();
+
     prevInfoHash = hs;
 
     _display_info();

@@ -92,7 +92,12 @@ void initAsteroids() {
 
 int asteroidDrawChar(float x, float y, char c, float size, int clr, bool extentsOnly) { 
 
+    if (c >= 'a' && c <= 'z') {
+        c += 'A' - 'a';
+    }
+
     framebuffer buffer;
+
     float width = 8 * size;
     float height = 8 * size;
     float ww = width * 1.5;
@@ -196,11 +201,7 @@ int asteroidDrawString(float x, float y, char *str, float size, int clr, bool ex
     int adv = 0;
     char *cc = str;
     while(cc[0] != 0) {
-        char c = cc[0];
-        if (c >= 'a' && c <= 'z') {
-            c += 'A' - 'a';
-        }
-        adv += asteroidDrawChar(x + adv, y, c, size, clr);
+        adv += asteroidDrawChar(x + adv, y, cc[0], size, clr);
         cc++;
     }
     return 0;

@@ -24,7 +24,8 @@
 
 #define MAX_SPRITES 64
 
-static bool hasBg;
+static bool hasBg = false;
+static uint8_t *currentFace = 0;
 
 #ifndef NORMALIZE
 uint8_t NORMALIZE(uint8_t value, uint8_t source, uint8_t target) {
@@ -36,13 +37,15 @@ uint8_t NORMALIZE(uint8_t value, uint8_t source, uint8_t target) {
 
 void watchface_init(void)
 {
+    currentFace = (uint8_t*)face;
+
     for(int j=0; ; j++) {
         watchface_gfx_t *g = &watchface_gfx[j];
         if (!g->type) break;
         g->sprite = 0;
     }
 
-    const uint8_t *ptr = (uint8_t*)face;
+    const uint8_t *ptr = currentFace;
 
     uint8_t header = ptr[0];
     uint8_t entityCount = ptr[1];
@@ -52,7 +55,7 @@ void watchface_init(void)
     uint8_t bg_width = ptr[8];
     uint8_t bg_height = ptr[9];
 
-    hasBg = bg;
+    hasBg = (bg == 0);
 
     // printf("header: %d\n", header);
     // printf("entityCount: %d\n", entityCount);
@@ -102,27 +105,15 @@ void watchface_init(void)
     watchface_draw();
 }
 
-void draw_sprite(int id, int x, int y, int w, int h)
+void draw_sprite(watchface_gfx_spr_t *s, int x, int y, int w, int h)
 {
-    const uint8_t *ptr = (uint8_t*)face;
-    watchface_gfx_spr_t *s = &watchface_spr[id];
+    const uint8_t *ptr = currentFace;
 
     int px = 0;
     int py = 0;
     for (uint32_t i = s->offset; i < s->offset + s->size; i += 3) {
         uint16_t pixel = READ16_(ptr, i);
         uint8_t sz = ptr[i+2];
-
-        // uint16_t rr = (pixel >> (5 + 6)) & 0x1f;
-        // uint16_t gg = (pixel >> 5) & 0x3f;
-        // uint16_t bb = pixel & 0x1f;
-        // uint16_t rgb = (rr << (5 + 6)) | (gg << 5) | bb;
-
-        // if (rr + gg + bb > 0) {
-        //     rgb = (0x00 << (5+6)) | (0xff << 5) | 0x00;
-        // } else {
-        //     rgb = 0;
-        // }
 
         for(int k=0; k<sz; ) {
             int ssz = sz - k;
@@ -165,11 +156,11 @@ void watchface_draw(void)
     prevHash = hs;
   
     // background
-    // if (hasBg) {
+    if (hasBg) {
         for (int i = 0; i < 10; i++) {
-            draw_sprite(i, 0, 24*i, 240, 24);
+            draw_sprite(&watchface_spr[i], 0, 24*i, 240, 24);
         }
-    // }
+    }
 
     for(int j=0; ;j++) {
         watchface_gfx_t *g = &watchface_gfx[j];
@@ -193,13 +184,13 @@ void watchface_draw(void)
             break;
 
         case 0x11: // month
-            draw_sprite(id + ((tm.month / 10) % 10), g->x, g->y, g->w, g->h);
-            draw_sprite(id + (tm.month % 10), g->x + g->w, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + ((tm.month / 10) % 10)], g->x, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + (tm.month % 10)], g->x + g->w, g->y, g->w, g->h);
             continue;
 
         case 0x30: // day
-            draw_sprite(id + ((tm.day / 10) % 10), g->x, g->y, g->w, g->h);
-            draw_sprite(id + (tm.day % 10), g->x + g->w, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + ((tm.day / 10) % 10)], g->x, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + (tm.day % 10)], g->x + g->w, g->y, g->w, g->h);
             continue;
 
         case 0x12: // year
@@ -215,10 +206,10 @@ void watchface_draw(void)
                 xx -= ((g->w + 1) * 4)/2;
             }
 
-            draw_sprite(id + yt, xx + (g->w + 1)*1, g->y, g->w, g->h);
-            draw_sprite(id + yh, xx + (g->w + 1)*2, g->y, g->w, g->h);
-            draw_sprite(id + yx, xx + (g->w + 1)*3, g->y, g->w, g->h);
-            draw_sprite(id + yl, xx + (g->w + 1)*4, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + yt], xx + (g->w + 1)*1, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + yh], xx + (g->w + 1)*2, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + yx], xx + (g->w + 1)*3, g->y, g->w, g->h);
+            draw_sprite(&watchface_spr[id + yl], xx + (g->w + 1)*4, g->y, g->w, g->h);
         }
             continue;
 
@@ -249,7 +240,7 @@ void watchface_draw(void)
         if (id == 0)
             continue;
 
-        draw_sprite(id, g->x, g->y, g->w, g->h);
+        draw_sprite(&watchface_spr[id], g->x, g->y, g->w, g->h);
 
         if (g->type == 0xd1) {
             int p = 2;
