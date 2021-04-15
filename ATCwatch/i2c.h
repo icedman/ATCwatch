@@ -20,8 +20,8 @@ uint8_t user_i2c_write(uint8_t addr, uint8_t reg_addr, const uint8_t *reg_data, 
 
 void Wire_begin();
 void Wire_beginTransmission(uint8_t);
-uint8_t Wire_endTransmission(bool stopBit);
-uint8_t Wire_requestFrom(uint8_t address, size_t quantity, bool stopBit);
-uint8_t Wire_requestFrom(uint8_t address, size_t quantity);
+uint8_t Wire_endTransmission(bool stopBit = true);
+uint8_t Wire_requestFrom(uint8_t address, size_t quantity, bool stopBit = true);
 void Wire_write(uint8_t data);
 int Wire_read(void);
+bool Wire_available();

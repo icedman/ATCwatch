@@ -207,6 +207,11 @@ int Wire_read(void)
     return rxBuffer.read_char();
 }
 
+bool Wire_available()
+{
+    return rxBuffer.available();
+}
+
 #if 0
 extern "C"
 {

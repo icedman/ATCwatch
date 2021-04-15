@@ -110,14 +110,13 @@ void draw_sprite(int id, int x, int y, int w, int h)
     int px = 0;
     int py = 0;
     for (uint32_t i = s->offset; i < s->offset + s->size; i += 3) {
-        uint16_t pixel = READ16(ptr, i);
+        uint16_t pixel = READ16_(ptr, i);
         uint8_t sz = ptr[i+2];
 
-        uint8_t rr = NORMALIZE((pixel >> (5 + 6)) & 0x1f, 0x1f, 0xff);
-        uint8_t gg = NORMALIZE((pixel >> 5) & 0x3f, 0x3f, 0xff);
-        uint8_t bb = NORMALIZE(pixel & 0x1f, 0x1f, 0xff);
-        // uint16_t rgb = (rr << (5+6)) | (gg << 5) | bb;
-        uint16_t rgb = (gg << (5+6)) | (rr << 5) | bb;
+        // uint16_t rr = (pixel >> (5 + 6)) & 0x1f;
+        // uint16_t gg = (pixel >> 5) & 0x3f;
+        // uint16_t bb = pixel & 0x1f;
+        // uint16_t rgb = (rr << (5 + 6)) | (gg << 5) | bb;
 
         // if (rr + gg + bb > 0) {
         //     rgb = (0x00 << (5+6)) | (0xff << 5) | 0x00;
@@ -134,7 +133,7 @@ void draw_sprite(int id, int x, int y, int w, int h)
             coord pos;
             pos.x = x + px;
             pos.y = y + py;
-            drawFilledRect(pos, ssz, 1, rgb);
+            drawFilledRect(pos, ssz, 1, pixel);
 
             px += ssz;
             if (px >= w) {
@@ -148,14 +147,7 @@ void draw_sprite(int id, int x, int y, int w, int h)
 
 static uint32_t prevHash  = 0;
 void watchface_draw(void)
-{  
-    // background
-    // if (hasBg) {
-    //     for (int i = 0; i < 10; i++) {
-    //         draw_sprite(i, 0, 24*i, 240, 24);
-    //     }
-    // }
-
+{
     time_data_struct tm = get_time();
     uint8_t dofw = getDayOfWeek();
 
@@ -171,6 +163,13 @@ void watchface_draw(void)
     uint32_t hs = dataHash(tmp);
     if (hs == prevHash) return;
     prevHash = hs;
+  
+    // background
+    // if (hasBg) {
+        for (int i = 0; i < 10; i++) {
+            draw_sprite(i, 0, 24*i, 240, 24);
+        }
+    // }
 
     for(int j=0; ;j++) {
         watchface_gfx_t *g = &watchface_gfx[j];
@@ -178,6 +177,7 @@ void watchface_draw(void)
         if (!g->sprite) continue;
 
         int id = g->sprite;
+
         switch(g->type) {
         case 0x40:
             id = g->sprite + (tm.hr / 10) % 10;
@@ -208,12 +208,17 @@ void watchface_draw(void)
             int yh = (((tm.year - yt * 1000) / 100) % 10);
             int yx = (((tm.year - yt * 1000 - yh * 100) / 10) % 10);
             int yl = (((tm.year - yt * 1000 - yh * 100 - yx * 10)) % 10);
-            int xx = g->x - g->w * 2;
+            int xx = g->x;
 
-            draw_sprite(id + yt, xx, g->y, g->w, g->h);
-            draw_sprite(id + yh, xx + g->w, g->y, g->w, g->h);
-            draw_sprite(id + yx, xx + g->w * 2, g->y, g->w, g->h);
-            draw_sprite(id + yl, xx + g->w * 3, g->y, g->w, g->h);
+            if (g->align == 0) {
+                xx -= g->w + 2;
+                xx -= ((g->w + 1) * 4)/2;
+            }
+
+            draw_sprite(id + yt, xx + (g->w + 1)*1, g->y, g->w, g->h);
+            draw_sprite(id + yh, xx + (g->w + 1)*2, g->y, g->w, g->h);
+            draw_sprite(id + yx, xx + (g->w + 1)*3, g->y, g->w, g->h);
+            draw_sprite(id + yl, xx + (g->w + 1)*4, g->y, g->w, g->h);
         }
             continue;
 
@@ -231,11 +236,11 @@ void watchface_draw(void)
             break;
         case 0xc0:
             if (!get_vars_ble_connected()) {
-                id = 0;
-                coord pos;
-                pos.x = g->x;
-                pos.y = g->y;
-                drawFilledRect(pos, g->w, g->h, 0);
+                // id = 0;
+                // coord pos;
+                // pos.x = g->x;
+                // pos.y = g->y;
+                // drawFilledRect(pos, g->w, g->h, 0);
 
             }
             break;
@@ -248,7 +253,7 @@ void watchface_draw(void)
 
         if (g->type == 0xd1) {
             int p = 2;
-            int ww = g->w * get_battery_percent() / 100;
+            int ww = (g->w - 4) * get_battery_percent() / 100;
             coord pos;
             pos.x = g->x + ww +p;
             pos.y = g->y + p;

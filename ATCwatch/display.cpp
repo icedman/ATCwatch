@@ -24,7 +24,6 @@
 #include "time.h"
 #include "sleep.h"
 #include "pedometer.h"
-#include "asteroidsfont.h"
 
 #include "watchface.h"
 
@@ -192,6 +191,7 @@ void endWrite_display(void) {
   Write a character to the screen position (x,y)
 */
 void drawChar(coord pos, uint8_t pixelsPerPixel, char character, uint16_t colourFG, uint16_t colourBG) {
+#ifndef ENABLE_ASTEROIDS
     startWrite_display();
 
     //Width and height of the character on the display
@@ -214,6 +214,7 @@ void drawChar(coord pos, uint8_t pixelsPerPixel, char character, uint16_t colour
     write_fast_spi(lcdBuffer, characterDispWidth * characterDispHeight * 2);  //Write the character to the display
 
     endWrite_display();
+#endif
 }
 
 /*
@@ -368,6 +369,33 @@ void drawFilledRect(coord pos, uint32_t w, uint32_t h, uint16_t colour) {
     endWrite_display();
 }
 
+void drawFilledRect2(coord pos, uint32_t w, uint32_t h, uint16_t colour) {
+    startWrite_display();
+    setDisplayWriteRegion({pos.x, pos.y}, w, h);
+    spiCommand(0x2C);  //Memory write
+    uint32_t numberOfBytesToWriteToLCD;
+    uint32_t numberBytesInWindowArea = (windowArea * 2);
+    uint32_t lcdBufferSize = LCD_BUFFER_SIZE;  //Size of LCD buffer
+    //If we are comfortable that the number of bytes the current window will hold in a buffer is less than the max buffer size:
+    if (numberBytesInWindowArea < lcdBufferSize)
+        lcdBufferSize = numberBytesInWindowArea;  //Set the buffer size to be that of the window area * 2 (number of bytes that the window would occupy)
+
+    for (int i = 0; i <= lcdBufferSize; i++) {  //Loop through buffer
+        //Write every pixel (half-word) into the LCD buffer
+        lcdBuffer[i++] = colour & 0xFF;  //Post increment meaning that it first writes to position i, then increments i
+        lcdBuffer[i] = (colour >> 8) & 0xFF;           //Writes to the (now) position of i++
+    }
+    do {
+        if (numberBytesInWindowArea >= LCD_BUFFER_SIZE)
+            numberOfBytesToWriteToLCD = LCD_BUFFER_SIZE;
+        else
+            numberOfBytesToWriteToLCD = numberBytesInWindowArea;
+        write_fast_spi(lcdBuffer, numberOfBytesToWriteToLCD);
+        numberBytesInWindowArea -= numberOfBytesToWriteToLCD;
+    } while (numberBytesInWindowArea > 0);
+    endWrite_display();
+}
+
 /*
   Draw a rectangle with outline of width lineWidth
  */
@@ -503,15 +531,14 @@ void padSpaces(char *tmp, int c) {
 touch_data_struct td;
 
 static int infoHash = 0;
+static accl_data_struct accl;
 void _display_info()
 {
-    // accl_data_struct accl = get_accl_data();
-
     int x = 24;
     int y = 24;
     char tmp[32];
-    // sprintf(tmp, "ICEDMAN %d %d", accl.x, accl.y);
-    sprintf(tmp, "ICEDMAN");
+    sprintf(tmp, "ICEDMAN %d %d", accl.x, accl.y);
+    // sprintf(tmp, "ICEDMAN");
     padSpaces(tmp, 4);
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
     y += 24 + 2;
@@ -520,6 +547,7 @@ void _display_info()
 static int prevInfoHash = 0;
 void _display_screen()
 {
+    accl = get_accl_data();
     get_heartrate_ms();
     int heart = get_heartrate();
     int bat = get_battery_percent();

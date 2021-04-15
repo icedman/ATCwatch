@@ -10,6 +10,8 @@
  * This is optional depending on the font, so there is a preprocessor command that handles that
  */
 
+#ifndef ENABLE_ASTEROIDS
+
 #define FONT_NEEDS_OFFSET false
 #define FONT_WIDTH 5
 #define FONT_HEIGHT 8
@@ -297,3 +299,5 @@ const unsigned char font[][5] =
         {0x00, 0x19, 0x1D, 0x17, 0x12},
         {0x00, 0x3C, 0x3C, 0x3C, 0x3C},
         {0x00, 0x00, 0x00, 0x00, 0x00}};
+
+#endif

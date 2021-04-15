@@ -13,10 +13,10 @@ Distributed as-is; no warranty is given.
 ******************************************************************************/
 
 #include "lis3dh-motion-detection.h"
+#include "i2c.h"
 #include "stdint.h"
 
-#include "Wire.h"
-#include "i2c.h"
+// #include "Wire.h"
 
 //****************************************************************************//
 //
@@ -39,7 +39,7 @@ imu_status_t LIS3DH::begin( uint16_t accSample,
 
     imu_status_t returnError = IMU_SUCCESS;
 
-//  	Wire.begin();
+//      Wire_begin();
 
     //Spin for a few ms
     volatile uint8_t temp = 0;
@@ -93,27 +93,26 @@ imu_status_t LIS3DH::readRegisterRegion(uint8_t *outputPointer, uint8_t offset, 
     uint8_t c = 0;
 
     set_i2cReading(true);
-    Wire.beginTransmission(I2CAddress);
+    Wire_beginTransmission(I2CAddress);
     offset |= 0x80; //turn auto-increment bit on, bit 7 for I2C
-    Wire.write(offset);
-    if( Wire.endTransmission() != 0 )
+    Wire_write(offset);
+    if( Wire_endTransmission() != 0 )
     {
         returnError = IMU_HW_ERROR;
     }
     else  //OK, all worked, keep going
     {
         // request 6 bytes from slave device
-        Wire.requestFrom(I2CAddress, length);
-        while ( (Wire.available()) && (i < length))  // slave may send less than requested
+        Wire_requestFrom(I2CAddress, length);
+        while ( (Wire_available()) && (i < length))  // slave may send less than requested
         {
-            c = Wire.read(); // receive a byte as character
+            c = Wire_read(); // receive a byte as character
             *outputPointer = c;
             outputPointer++;
             i++;
         }
     }
     set_i2cReading(false);
-
     return returnError;
 }
 
@@ -133,21 +132,21 @@ imu_status_t LIS3DH::readRegister(uint8_t* outputPointer, uint8_t offset) {
     imu_status_t returnError = IMU_SUCCESS;
 
     set_i2cReading(true);
-    Wire.beginTransmission(I2CAddress);
-    Wire.write(offset);
-    if( Wire.endTransmission() != 0 )
+    Wire_beginTransmission(I2CAddress);
+    Wire_write(offset);
+    if( Wire_endTransmission() != 0 )
     {
         returnError = IMU_HW_ERROR;
     }
-    Wire.requestFrom(I2CAddress, numBytes);
-    while ( Wire.available() ) // slave may send less than requested
+    Wire_requestFrom(I2CAddress, numBytes);
+    while ( Wire_available() ) // slave may send less than requested
     {
-        result = Wire.read(); // receive a byte as a proper uint8_t
+        result = Wire_read(); // receive a byte as a proper uint8_t
     }
 
     _DEBBUG("Read register 0x", offset, " = ", result);
-    set_i2cReading(false);
 
+    set_i2cReading(false);
     *outputPointer = result;
     return returnError;
 }
@@ -164,7 +163,6 @@ imu_status_t LIS3DH::readRegister(uint8_t* outputPointer, uint8_t offset) {
 imu_status_t LIS3DH::readRegisterInt16( int16_t* outputPointer, uint8_t offset )
 {
     {
-        set_i2cReading(true);
         //offset |= 0x80; //turn auto-increment bit on
         uint8_t myBuffer[2];
         imu_status_t returnError = readRegisterRegion(myBuffer, offset, 2);  //Does memory transfer
@@ -172,7 +170,6 @@ imu_status_t LIS3DH::readRegisterInt16( int16_t* outputPointer, uint8_t offset )
 
         _DEBBUG("12 bit from 0x", offset, " = ", output);
         *outputPointer = output;
-        set_i2cReading(false);
         return returnError;
     }
 
@@ -191,14 +188,15 @@ imu_status_t LIS3DH::writeRegister(uint8_t offset, uint8_t dataToWrite) {
     imu_status_t returnError = IMU_SUCCESS;
 
     //Write the byte
-    Wire.beginTransmission(I2CAddress);
-    Wire.write(offset);
-    Wire.write(dataToWrite);
-    if( Wire.endTransmission() != 0 )
+    set_i2cReading(true);
+    Wire_beginTransmission(I2CAddress);
+    Wire_write(offset);
+    Wire_write(dataToWrite);
+    if( Wire_endTransmission() != 0 )
     {
         returnError = IMU_HW_ERROR;
     }
-
+    set_i2cReading(false);
     return returnError;
 }
 
@@ -355,14 +353,14 @@ void LIS3DH::applySettings( void )
 //****************************************************************************//
 //
 //  Configure interrupts 1 or 2, stop or move, threshold and duration
-//	Durationsteps and maximum values depend on the ODR chosen.
+//  Durationsteps and maximum values depend on the ODR chosen.
 //
 //****************************************************************************//
 imu_status_t LIS3DH::intConf(interrupt_t interrupt,
                              event_t moveType,
                              uint8_t threshold,
                              uint8_t timeDur,
-                             bool		polarity )
+                             bool       polarity )
 {
     uint8_t dataToWrite = 0;  //Temporary variable
     imu_status_t returnError = IMU_SUCCESS;
@@ -372,8 +370,8 @@ imu_status_t LIS3DH::intConf(interrupt_t interrupt,
 
     //Build INT_CFG 0x30 or 0x34
     //Detect movement or stop
-    if(moveType == 1)	dataToWrite |= 0x0A;
-    else 							dataToWrite |= 0x05;
+    if(moveType == 1)   dataToWrite |= 0x0A;
+    else                            dataToWrite |= 0x05;
 
     _DEBBUG ("LIS3DH_INT_CFG: 0x", dataToWrite);
     returnError = writeRegister(regToWrite, dataToWrite);

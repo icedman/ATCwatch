@@ -9,6 +9,8 @@
 #include "Arduino.h"
 #include "pinout.h"
 #include "font.h"
+#include "asteroidsfont.h"
+
 // #include "font16.h"
 
 #define ST77XX_SLPIN 0x10
@@ -66,6 +68,7 @@ void startWrite_display(void);
 void endWrite_display(void);
 
 void drawFilledRect(coord pos, uint32_t w, uint32_t h, uint16_t colour);
+void drawFilledRect2(coord pos, uint32_t w, uint32_t h, uint16_t colour);
 void setDisplayWriteRegion(coord pos, uint32_t w, uint32_t h);
 void clearDisplay(bool leaveAppDrawer = false);
 void drawChar(coord pos, uint8_t pixelsPerPixel, char character, uint16_t colourFG, uint16_t colourBG);

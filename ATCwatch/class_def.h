@@ -7,7 +7,7 @@
 #pragma once
 #include "Arduino.h"
 #include "menu.h"
-#include <lvgl.h>
+// #include <lvgl.h>
 
 #define DEFAULT_SLEEP_TIMEOUT 10000
 #define DEFAULT_REFRESH_TIME 40
@@ -65,13 +65,13 @@ public:
         return DEFAULT_REFRESH_TIME;
     }
 
-    virtual void lv_event_class(lv_obj_t * object, lv_event_t event)
-    {
+    // virtual void lv_event_class(lv_obj_t * object, lv_event_t event)
+    // {
 
-    }
+    // }
 
-    virtual void pre_display()
-    {
-        lv_obj_clean(lv_scr_act());
-    }
+    // virtual void pre_display()
+    // {
+    //     lv_obj_clean(lv_scr_act());
+    // }
 };
