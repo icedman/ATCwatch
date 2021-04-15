@@ -34,6 +34,9 @@ typedef struct {
 
 typedef long fixed;
 
+
+#define LCD_BUFFER_SIZE 15000 
+
 #define FPMUL(x,y)      ((((x)>>6)*((y)>>6))>>4)    // multiply fixed by fixed. returns fixed
 #define FPMULH(x,y)     ((((x)>>2)*((y)>>2))>>12)   // higher precision
 #define FPDIV(x,y)      ((((x)<<6)/((y)>>6))<<4)    // divide fixed by fixed. returns fixed
@@ -68,7 +71,6 @@ void startWrite_display(void);
 void endWrite_display(void);
 
 void drawFilledRect(coord pos, uint32_t w, uint32_t h, uint16_t colour);
-void drawFilledRect2(coord pos, uint32_t w, uint32_t h, uint16_t colour);
 void setDisplayWriteRegion(coord pos, uint32_t w, uint32_t h);
 void clearDisplay(bool leaveAppDrawer = false);
 void drawChar(coord pos, uint8_t pixelsPerPixel, char character, uint16_t colourFG, uint16_t colourBG);
@@ -87,6 +89,10 @@ void display_booting();
 void display_home();
 void display_charging();
 void display_screen();
+
+void beginSprite(int x, int y, int w, int h, bool clear=false);
+void endSprite();
+uint8_t* getLCDBuffer();
 
 unsigned int dataHash(const char *s);
 

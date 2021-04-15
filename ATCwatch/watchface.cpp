@@ -107,14 +107,24 @@ void watchface_init(void)
 
 void draw_sprite(watchface_gfx_spr_t *s, int x, int y, int w, int h)
 {
+    beginSprite(x, y, w, h);
+    uint8_t* buffer = (uint8_t*)getLCDBuffer();
+
     const uint8_t *ptr = currentFace;
 
+    int ii = 0;
     int px = 0;
     int py = 0;
     for (uint32_t i = s->offset; i < s->offset + s->size; i += 3) {
         uint16_t pixel = READ16_(ptr, i);
         uint8_t sz = ptr[i+2];
 
+        for(int j=0; j<sz; j++) {
+            if (ii >= LCD_BUFFER_SIZE) break;
+            buffer[ii++] = (pixel >> 8) & 0xFF;  //Post increment meaning that it first writes to position i, then increments i
+            buffer[ii++] = pixel & 0xFF;  
+        }
+        /*
         for(int k=0; k<sz; ) {
             int ssz = sz - k;
             if (px + ssz > w) {
@@ -124,6 +134,7 @@ void draw_sprite(watchface_gfx_spr_t *s, int x, int y, int w, int h)
             coord pos;
             pos.x = x + px;
             pos.y = y + py;
+
             drawFilledRect(pos, ssz, 1, pixel);
 
             px += ssz;
@@ -133,7 +144,10 @@ void draw_sprite(watchface_gfx_spr_t *s, int x, int y, int w, int h)
             }
             k += ssz;
         }
+        */
     }
+
+    endSprite();
 }
 
 static uint32_t prevHash  = 0;

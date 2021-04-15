@@ -25,14 +25,17 @@
 #include "sleep.h"
 #include "pedometer.h"
 
-#include "watchface.h"
-
-#define LCD_BUFFER_SIZE 15000  //LCD Buffer set to 15kbytes (approx = 1/2 RAM) meaning you can write up to 7500 pixels into the buffer without having to run over
+#include "watchface.h" //LCD Buffer set to 15kbytes (approx = 1/2 RAM) meaning you can write up to 7500 pixels into the buffer without having to run over
 
 uint8_t lcdBuffer[LCD_BUFFER_SIZE + 4];
 uint32_t windowArea = 0;
 uint32_t windowWidth = 0;
 uint32_t windowHeight = 0;
+
+uint8_t* getLCDBuffer()
+{
+    return lcdBuffer;
+}
 
 void inc_tick() {
     // lv_tick_inc(40);
@@ -379,33 +382,6 @@ void drawFilledRect(coord pos, uint32_t w, uint32_t h, uint16_t colour) {
     endWrite_display();
 }
 
-void drawFilledRect2(coord pos, uint32_t w, uint32_t h, uint16_t colour) {
-    startWrite_display();
-    setDisplayWriteRegion({pos.x, pos.y}, w, h);
-    spiCommand(0x2C);  //Memory write
-    uint32_t numberOfBytesToWriteToLCD;
-    uint32_t numberBytesInWindowArea = (windowArea * 2);
-    uint32_t lcdBufferSize = LCD_BUFFER_SIZE;  //Size of LCD buffer
-    //If we are comfortable that the number of bytes the current window will hold in a buffer is less than the max buffer size:
-    if (numberBytesInWindowArea < lcdBufferSize)
-        lcdBufferSize = numberBytesInWindowArea;  //Set the buffer size to be that of the window area * 2 (number of bytes that the window would occupy)
-
-    for (int i = 0; i <= lcdBufferSize; i++) {  //Loop through buffer
-        //Write every pixel (half-word) into the LCD buffer
-        lcdBuffer[i++] = colour & 0xFF;  //Post increment meaning that it first writes to position i, then increments i
-        lcdBuffer[i] = (colour >> 8) & 0xFF;           //Writes to the (now) position of i++
-    }
-    do {
-        if (numberBytesInWindowArea >= LCD_BUFFER_SIZE)
-            numberOfBytesToWriteToLCD = LCD_BUFFER_SIZE;
-        else
-            numberOfBytesToWriteToLCD = numberBytesInWindowArea;
-        write_fast_spi(lcdBuffer, numberOfBytesToWriteToLCD);
-        numberBytesInWindowArea -= numberOfBytesToWriteToLCD;
-    } while (numberBytesInWindowArea > 0);
-    endWrite_display();
-}
-
 /*
   Draw a rectangle with outline of width lineWidth
  */
@@ -467,15 +443,16 @@ void clearDisplay(bool leaveAppDrawer) {
 // line renderer
 void drawPixel(framebuffer *buffer, int x,int y,byte color)
 {
-    if (x<0 || y<0 || x>=buffer->width || y>=buffer->height)
-        return;
+    // if (x<0 || y<0 || x>=buffer->width || y>=buffer->height)
+    //     return;
 
-    byte *pDest=(byte*)buffer->pixels  + ((x) + (y * buffer->pitch>>1));
-    *pDest=color;
+    // byte *pDest=(byte*)buffer->pixels  + ((x) + (y * buffer->pitch>>1));
+    // *pDest=color;
 }
 
 void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
 {
+    /*
     if (y == y2) {
         coord pos;
         pos.x = x < x2 ? x : x2;
@@ -491,6 +468,7 @@ void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
         drawFilledRect(pos, 1, abs(y - y2), color);
         return;
     }
+    */
 
     // if (buffer->pixels == 0) {
     //     buffer->pixels = lcdBuffer;
@@ -515,8 +493,13 @@ void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
         coord pos;
         pos.x = sx >> FPP;
         pos.y = sy >> FPP;
-        if (pos.x < 240 || pos.y < 240) {
-            drawFilledRect(pos, 1, 1, color);
+        // if (pos.x < 240 && pos.y < 240) {
+        if (pos.x < buffer->width && pos.y < buffer->height) {
+            // drawFilledRect(pos, 1, 1, color);
+            // int idx = (pos.x + (buffer->height - pos.y) * buffer->width) * 2;
+            int idx = (pos.x + pos.y * buffer->width) * 2;
+            lcdBuffer[idx++] = (color >> 8) & 0xFF;
+            lcdBuffer[idx] = color & 0xFF;
         }
         // drawPixel(buffer,(sx>>FPP),(sy>>FPP),color);
         sx+=xx;
@@ -525,6 +508,31 @@ void drawLine(framebuffer *buffer,int x,int y,int x2,int y2, uint32_t color)
     }
 }
 
+static uint32_t nobtwtlcd;
+void beginSprite(int x, int y, int w, int h, bool clear)
+{
+    startWrite_display();
+    setDisplayWriteRegion({x, y}, w, h);
+    nobtwtlcd = w * h * 2;
+
+    if (nobtwtlcd >= LCD_BUFFER_SIZE)
+        nobtwtlcd = LCD_BUFFER_SIZE;
+
+    if (clear) {
+        memset(lcdBuffer, 0, nobtwtlcd);
+        // for(int i=0;i<nobtwtlcd;i++) {
+            // lcdBuffer[i] = 50;
+        // }
+    }
+
+    spiCommand(0x2C);  //Memory write
+}
+
+void endSprite()
+{
+    write_fast_spi(lcdBuffer, nobtwtlcd);
+    endWrite_display();
+}
 
 int currentScreen = 0;
 
@@ -564,7 +572,7 @@ void _display_info()
     int x = 24;
     int y = 24;
     char tmp[32];
-    sprintf(tmp, "ICEDMAN %d %d", accl.x, accl.y);
+    sprintf(tmp, "%d %d", accl.x, accl.y);
     // sprintf(tmp, "ICEDMAN");
     padSpaces(tmp, 4);
     drawString({ x, y }, 2, tmp, COLOUR_WHITE, COLOUR_BLACK);
@@ -593,7 +601,7 @@ void _display_screen()
 
     int hs = dataHash(tmp);
     if (hs == prevInfoHash) {
-        return;
+        // return;
     }
 
     // clearDisplay();
